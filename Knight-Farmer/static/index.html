@@ -75,15 +75,14 @@
       });
 
       const data = await res.json();
-if (res.ok) {
-  document.getElementById(`${id}-config`).classList.remove("hidden");
-  document.getElementById(`${id}-farm-list`).textContent = JSON.stringify(data.farm_lists, null, 2);
-  alert("✅ Login successful!");
-} else {
-  const errorMsg = data?.error || data?.detail || JSON.stringify(data);
-  alert("❌ Login failed: " + errorMsg);
-}
-
+      if (res.ok) {
+        document.getElementById(`${id}-config`).classList.remove("hidden");
+        document.getElementById(`${id}-farm-list`).textContent = JSON.stringify(data.farm_lists, null, 2);
+        alert("✅ Login successful!");
+      } else {
+        const errorMsg = data?.error || data?.detail || JSON.stringify(data);
+        alert("❌ Login failed: " + errorMsg);
+      }
 
     async function pollBotStatus(id) {
       if (botIntervals[id]) clearInterval(botIntervals[id]);
