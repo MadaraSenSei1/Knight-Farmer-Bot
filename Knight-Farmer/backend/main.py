@@ -37,17 +37,12 @@ async def get_root():
 @app.post("/api/login")
 async def login(data: LoginData):
     proxy = data.proxy
-    proxy_str = f"{proxy.username}:{proxy.password}@{proxy.ip}:{proxy.port}" if proxy.username else f"{proxy.ip}:{proxy.port}"
+    proxy_str = f"{proxy.username}:{proxy.password}@{proxy.ip}:{proxy.port}"
 
-    bot = TravianBot(
-        username=data.username,
-        password=data.password,
-        server=data.server,
-        proxy=proxy_str
-    )
+    bot = TravianBot(data.username, data.password, data.server, proxy_str)
     success = bot.login()
     if not success:
-        return JSONResponse(content={"error": "Login failed"}, status_code=401)
+        return JSONResponse(content={"error": "Login failed on Travian side"}, status_code=401)
 
     ACCOUNTS[uuid] = bot
     return {"uuid": uuid, "farm_lists": bot.get_farm_lists()}
