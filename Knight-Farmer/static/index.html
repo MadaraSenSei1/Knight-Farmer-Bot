@@ -74,7 +74,7 @@
         document.getElementById(`${id}-farm-list`).classList.remove("hidden");
         alert("✅ Login successful!");
       } else {
-        alert("❌ Login failed: " + (data?.error || data?.detail || "unknown error"));
+        alert("❌ Login failed: " + (data?.error || data?.detail || JSON.stringify(data)));
       }
     }
   </script>
