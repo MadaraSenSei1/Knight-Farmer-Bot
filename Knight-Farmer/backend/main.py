@@ -15,8 +15,8 @@ ACCOUNTS = {}
 class ProxyData(BaseModel):
     ip: str
     port: str
-    username: str
-    password: str
+    username: str = ""
+    password: str = ""
 
 class LoginData(BaseModel):
     username: str
@@ -36,19 +36,21 @@ async def get_root():
 
 @app.post("/api/login")
 async def login(data: LoginData):
-    uuid = str(uuid4())
+    proxy = data.proxy
+    proxy_str = f"{proxy.username}:{proxy.password}@{proxy.ip}:{proxy.port}" if proxy.username else f"{proxy.ip}:{proxy.port}"
+
     bot = TravianBot(
         username=data.username,
         password=data.password,
         server=data.server,
-        proxy=data.proxy
+        proxy=proxy_str
     )
     success = bot.login()
     if not success:
         return JSONResponse(content={"error": "Login failed"}, status_code=401)
 
     ACCOUNTS[uuid] = bot
-    return {"uuid": uuid}
+    return {"uuid": uuid, "farm_lists": bot.get_farm_lists()}
 
 @app.get("/api/farmlist/{uuid}")
 async def get_farmlist(uuid: str):
