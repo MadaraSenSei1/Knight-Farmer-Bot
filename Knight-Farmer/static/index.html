@@ -53,18 +53,24 @@
       const password = document.getElementById(`${id}-password`).value;
       const server = document.getElementById(`${id}-server`).value;
 
-      const proxy = `${document.getElementById(`${id}-proxy-ip`).value}:${document.getElementById(`${id}-proxy-port`).value}`;
-      const proxyUser = document.getElementById(`${id}-proxy-user`).value;
-      const proxyPass = document.getElementById(`${id}-proxy-pass`).value;
+      const proxy = {
+        ip: document.getElementById(`${id}-proxy-ip`).value || "",
+        port: document.getElementById(`${id}-proxy-port`).value || "",
+        username: document.getElementById(`${id}-proxy-user`).value || "",
+        password: document.getElementById(`${id}-proxy-pass`).value || ""
+      };
 
-      const fullProxy = proxyUser && proxyPass ? `http://${proxyUser}:${proxyPass}@${proxy}` : `http://${proxy}`;
+      const body = {
+        username,
+        password,
+        server,
+        proxy
+      };
 
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username, password, server, proxy: fullProxy
-        })
+        body: JSON.stringify(body)
       });
 
       const data = await res.json();
