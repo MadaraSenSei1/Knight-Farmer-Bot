@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+selenium
+python-multipart
+pydantic
+aiofiles
+uuid
