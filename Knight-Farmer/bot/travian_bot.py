@@ -28,9 +28,8 @@ class TravianBot:
         self.driver.find_element(By.NAME, "password").send_keys(self.password)
         self.driver.find_element(By.CLASS_NAME, "loginButton").click()
 
-        time.sleep(5)  # Warten auf Weiterleitung
+        time.sleep(5)
 
-        # ✅ Überprüfen ob wir erfolgreich eingeloggt sind (z.B. Lobby-URL oder Logout-Link)
         if "dorf1.php" in self.driver.current_url or "dorf2.php" in self.driver.current_url:
             return True
         elif "start.ad" in self.driver.current_url or "login" in self.driver.current_url:
@@ -41,6 +40,11 @@ class TravianBot:
             print("[⚠️] Unbekannter Login-Zustand: ", self.driver.current_url)
             self.driver.quit()
             return False
+
+    except Exception as e:
+        print(f"[‼️] Login error: {e}")
+        self.driver.quit()
+        return False
 
     except Exception as e:
         print(f"[‼️] Login error: {e}")
