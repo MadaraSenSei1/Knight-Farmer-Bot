@@ -12,11 +12,17 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 ACCOUNTS = {}
 
+class ProxyData(BaseModel):
+    ip: str
+    port: str
+    username: str
+    password: str
+
 class LoginData(BaseModel):
     username: str
     password: str
     server: str
-    proxy: str
+    proxy: ProxyData
 
 class IntervalConfig(BaseModel):
     uuid: str
@@ -35,7 +41,7 @@ async def login(data: LoginData):
         username=data.username,
         password=data.password,
         server=data.server,
-        proxy=data.proxy
+        proxy=data.proxy_str
     )
     success = bot.login()
     if not success:
