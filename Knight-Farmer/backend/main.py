@@ -41,7 +41,7 @@ async def login(data: LoginData):
         username=data.username,
         password=data.password,
         server=data.server,
-        proxy=data.proxy_str
+        proxy=data.proxy
     )
     success = bot.login()
     if not success:
