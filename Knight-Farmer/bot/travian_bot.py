@@ -21,25 +21,25 @@ class TravianBot:
         self.driver = webdriver.Chrome(options=options)
 
    def login(self):
-    self._init_driver()
-    try:
-        self.driver.get(self.server)
-        self.driver.find_element(By.NAME, "name").send_keys(self.username)
-        self.driver.find_element(By.NAME, "password").send_keys(self.password)
-        self.driver.find_element(By.CLASS_NAME, "loginButton").click()
-
-        time.sleep(5)
-
-        if "dorf1.php" in self.driver.current_url or "dorf2.php" in self.driver.current_url:
-            return True
-        elif "start.ad" in self.driver.current_url or "login" in self.driver.current_url:
-            print("[❌] Login fehlgeschlagen: Weiterleitung zur Login-Seite.")
-            self.driver.quit()
-            return False
-        else:
-            print("[⚠️] Unbekannter Login-Zustand: ", self.driver.current_url)
-            self.driver.quit()
-            return False
+       self._init_driver()
+       try:
+           self.driver.get(self.server)
+           self.driver.find_element(By.NAME, "name").send_keys(self.username)
+           self.driver.find_element(By.NAME, "password").send_keys(self.password)
+           self.driver.find_element(By.CLASS_NAME, "loginButton").click()
+  
+           time.sleep(5)
+  
+           if "dorf1.php" in self.driver.current_url or "dorf2.php" in self.driver.current_url:
+               return True
+           elif "start.ad" in self.driver.current_url or "login" in self.driver.current_url:
+               print("[❌] Login fehlgeschlagen: Weiterleitung zur Login-Seite.")
+               self.driver.quit()
+               return False
+           else:
+               print("[⚠️] Unbekannter Login-Zustand: ", self.driver.current_url)
+               self.driver.quit()
+               return False
 
     except Exception as e:
         print(f"[‼️] Login error: {e}")
