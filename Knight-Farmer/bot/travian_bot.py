@@ -1,6 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import threading, time, random
 
 class TravianBot:
@@ -16,6 +18,8 @@ class TravianBot:
     def _init_driver(self):
         options = Options()
         options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
         if self.proxy:
             options.add_argument(f"--proxy-server={self.proxy}")
         self.driver = webdriver.Chrome(options=options)
@@ -23,21 +27,36 @@ class TravianBot:
     def login(self):
         self._init_driver()
         try:
+            print(f"[ℹ️] Opening URL: {self.server}")
             self.driver.get(self.server)
-            self.driver.find_element(By.NAME, "name").send_keys(self.username)
-            self.driver.find_element(By.NAME, "password").send_keys(self.password)
-            self.driver.find_element(By.CLASS_NAME, "loginButton").click()
 
+            # Cookie-Banner klicken, falls vorhanden
+            try:
+                accept = WebDriverWait(self.driver, 5).until(
+                    EC.element_to_be_clickable((By.ID, "cookieConsentButton"))
+                )
+                accept.click()
+                print("[✔️] Cookie-Banner akzeptiert.")
+            except:
+                pass  # Kein Banner
+
+            # Auf Login-Felder warten
+            wait = WebDriverWait(self.driver, 15)
+            username_input = wait.until(EC.presence_of_element_located((By.NAME, "name")))
+            password_input = self.driver.find_element(By.NAME, "password")
+            login_button = self.driver.find_element(By.CLASS_NAME, "loginButton")
+
+            username_input.send_keys(self.username)
+            password_input.send_keys(self.password)
+            login_button.click()
+
+            # Login prüfen
             time.sleep(5)
-
             if "dorf1.php" in self.driver.current_url or "dorf2.php" in self.driver.current_url:
+                print("[✅] Login erfolgreich!")
                 return True
-            elif "start.ad" in self.driver.current_url or "login" in self.driver.current_url:
-                print("[❌] Login fehlgeschlagen: Weiterleitung zur Login-Seite.")
-                self.driver.quit()
-                return False
             else:
-                print("[⚠️] Unbekannter Login-Zustand: ", self.driver.current_url)
+                print(f"[❌] Login fehlgeschlagen. URL nach Login: {self.driver.current_url}")
                 self.driver.quit()
                 return False
 
@@ -48,7 +67,7 @@ class TravianBot:
 
     def get_farm_lists(self):
         try:
-            # Beispiel: farm list auslesen
+            # Beispielhafte Rückgabe
             return [{"name": "Farm 1"}, {"name": "Farm 2"}]
         except:
             return []
@@ -59,7 +78,10 @@ class TravianBot:
         def farm_loop():
             while self.running:
                 print(f"[{self.username}] Executing farm list...")
-                time.sleep(random.randint(min_interval, max_interval) + (random.randint(0, 30) if randomize else 0))
+                interval = random.randint(min_interval, max_interval)
+                if randomize:
+                    interval += random.randint(0, 30)
+                time.sleep(interval)
 
         self.thread = threading.Thread(target=farm_loop)
         self.thread.start()
