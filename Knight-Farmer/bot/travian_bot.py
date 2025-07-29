@@ -28,44 +28,32 @@ class TravianBot:
             options.add_argument(f'--proxy-server={self.proxy}')
         self.driver = webdriver.Chrome(options=options)
 
+    
     def login(self):
-        self._init_driver()
-        try:
-            self.driver.get("https://lobby.travian.com")
-            wait = WebDriverWait(self.driver, 15)
+        self.driver.get(f"{self.server}/login.php")
 
-            # Login-Felder auf der Lobby-Seite
-            email_input = wait.until(EC.presence_of_element_located((By.NAME, "email")))
+        try:
+            # Warten auf das Email-Feld (nicht name!)
+            WebDriverWait(self.driver, 15).until(EC.presence_of_element_located((By.NAME, "email")))
+
+            email_input = self.driver.find_element(By.NAME, "email")
             password_input = self.driver.find_element(By.NAME, "password")
-            login_button = self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+            login_button = self.driver.find_element(By.XPATH, '//button[@type="submit"]')
 
             email_input.send_keys(self.username)
             password_input.send_keys(self.password)
             login_button.click()
 
-            # Cookie-Zustimmung (optional)
-            try:
-                cookie_button = wait.until(EC.element_to_be_clickable((By.ID, "cookieConsentButton")))
-                cookie_button.click()
-            except:
-                pass
+            # Prüfen ob Login erfolgreich war (z.B. Heldensymbol oder Dorfansicht lädt)
+            WebDriverWait(self.driver, 15).until(
+                EC.presence_of_element_located((By.ID, "sidebarBoxHero"))  # oder ein anderes sicheres Element
+            )
 
-            # Warte auf Weltliste
-            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "world-list")))
-            print("[✅] Erfolgreich in Lobby eingeloggt.")
-
-            # Öffne die Zielwelt
-            self.driver.get(self.server)
-
-            # Warte auf Spielstart
-            wait.until(EC.presence_of_element_located((By.ID, "sidebarBoxVillagelist")))
-            print(f"[✅] Erfolgreich eingeloggt in Welt: {self.server}")
+            print("✅ Login erfolgreich")
             return True
-
+    
         except Exception as e:
-            print(f"[‼️] Login error: {e}")
-            if self.driver:
-                self.driver.quit()
+            print(f"❌ Login fehlgeschlagen: {e}")
             return False
 
     def get_farm_lists(self):
