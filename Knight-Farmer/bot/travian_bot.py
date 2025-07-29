@@ -30,31 +30,34 @@ class TravianBot:
 
     
     def login(self):
-        self.driver.get(f"{self.server}/login.php")
-
+        self._init_driver()
         try:
-            # Warten auf das Email-Feld (nicht name!)
-            WebDriverWait(self.driver, 15).until(EC.presence_of_element_located((By.NAME, "email")))
+            self.driver.get(self.server)
+            wait = WebDriverWait(self.driver, 15)
 
-            email_input = self.driver.find_element(By.NAME, "email")
-            password_input = self.driver.find_element(By.NAME, "password")
-            login_button = self.driver.find_element(By.XPATH, '//button[@type="submit"]')
+            # 🔑 Richtige Felder gemäß HTML
+            username_input = wait.until(EC.presence_of_element_located((By.NAME, "name")))
+            password_input = wait.until(EC.presence_of_element_located((By.NAME, "password")))
+            login_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]')))
 
-            email_input.send_keys(self.username)
+            username_input.send_keys(self.username)
             password_input.send_keys(self.password)
             login_button.click()
 
-            # Prüfen ob Login erfolgreich war (z.B. Heldensymbol oder Dorfansicht lädt)
-            WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.ID, "sidebarBoxHero"))  # oder ein anderes sicheres Element
-            )
-
-            print("✅ Login erfolgreich")
-            return True
-    
+            # Warten auf Weiterleitung
+            time.sleep(5)
+            if "dorf1.php" in self.driver.current_url or "dorf2.php" in self.driver.current_url:
+                print("[✅] Login erfolgreich")
+                return True
+            else:
+                print("[❌] Login fehlgeschlagen oder Weiterleitung fehlte")
+                self.driver.quit()
+                return False
         except Exception as e:
-            print(f"❌ Login fehlgeschlagen: {e}")
+            print(f"[‼️] Login-Fehler: {e}")
+            self.driver.quit()
             return False
+
 
     def get_farm_lists(self):
         try:
