@@ -25,45 +25,38 @@ class TravianBot:
         self.driver = webdriver.Chrome(options=options)
 
     def login(self):
-        self._init_driver()
+    self._init_driver()
+    try:
+        self.driver.get("https://lobby.travian.com")
+        wait = WebDriverWait(self.driver, 10)
+
+        # Neue Lobby-Felder:
+        email_input = wait.until(EC.presence_of_element_located((By.NAME, "email")))
+        password_input = self.driver.find_element(By.NAME, "password")
+        login_button = self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+
+        email_input.send_keys(self.username)
+        password_input.send_keys(self.password)
+        login_button.click()
+
+        # Optional: Cookie-Banner wegklicken
         try:
-            print(f"[ℹ️] Opening URL: {self.server}")
-            self.driver.get(self.server)
+            cookie_button = wait.until(EC.element_to_be_clickable((By.ID, "cookieConsentButton")))
+            cookie_button.click()
+        except:
+            pass
 
-            # Cookie-Banner klicken, falls vorhanden
-            try:
-                accept = WebDriverWait(self.driver, 5).until(
-                    EC.element_to_be_clickable((By.ID, "cookieConsentButton"))
-                )
-                accept.click()
-                print("[✔️] Cookie-Banner akzeptiert.")
-            except:
-                pass  # Kein Banner
+        # Warte auf Weiterleitung zur Lobby nach Login
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "world-list")))
 
-            # Auf Login-Felder warten
-            wait = WebDriverWait(self.driver, 15)
-            username_input = wait.until(EC.presence_of_element_located((By.NAME, "email")))
-            password_input = self.driver.find_element(By.NAME, "password")
-            login_button = self.driver.find_element(By.CLASS_NAME, "loginButton")
-
-            username_input.send_keys(self.username)
-            password_input.send_keys(self.password)
-            login_button.click()
-
-            # Login prüfen
-            time.sleep(5)
-            if "dorf1.php" in self.driver.current_url or "dorf2.php" in self.driver.current_url:
-                print("[✅] Login erfolgreich!")
-                return True
-            else:
-                print(f"[❌] Login fehlgeschlagen. URL nach Login: {self.driver.current_url}")
-                self.driver.quit()
-                return False
-
-        except Exception as e:
-            print(f"[‼️] Login error: {e}")
+        print("[✅] Login erfolgreich in die Lobby")
+        return True
+    except Exception as e:
+        print(f"[‼️] Login error: {e}")
+        if self.driver:
             self.driver.quit()
-            return False
+        return False
+e
 
     def get_farm_lists(self):
         try:
