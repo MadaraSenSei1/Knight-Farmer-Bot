@@ -42,7 +42,7 @@ class TravianBot:
 
             # Auf Login-Felder warten
             wait = WebDriverWait(self.driver, 15)
-            username_input = wait.until(EC.presence_of_element_located((By.NAME, "name")))
+            username_input = wait.until(EC.presence_of_element_located((By.NAME, "email")))
             password_input = self.driver.find_element(By.NAME, "password")
             login_button = self.driver.find_element(By.CLASS_NAME, "loginButton")
 
