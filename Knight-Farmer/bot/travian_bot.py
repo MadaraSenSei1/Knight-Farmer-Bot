@@ -35,29 +35,28 @@ class TravianBot:
             self.driver.get(self.server)
             wait = WebDriverWait(self.driver, 15)
 
-            # 🔑 Richtige Felder gemäß HTML
+            # ✅ Korrekte Felder für klassisches Login-Formular
             username_input = wait.until(EC.presence_of_element_located((By.NAME, "name")))
             password_input = wait.until(EC.presence_of_element_located((By.NAME, "password")))
             login_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]')))
 
+            username_input.clear()
             username_input.send_keys(self.username)
+
+            password_input.clear()
             password_input.send_keys(self.password)
+
             login_button.click()
 
-            # Warten auf Weiterleitung
-            time.sleep(5)
-            if "dorf1.php" in self.driver.current_url or "dorf2.php" in self.driver.current_url:
-                print("[✅] Login erfolgreich")
-                return True
-            else:
-                print("[❌] Login fehlgeschlagen oder Weiterleitung fehlte")
-                self.driver.quit()
-                return False
+            # Warte auf Weiterleitung zur Dorfansicht
+            wait.until(EC.url_contains("dorf"))
+            print("[✅] Login erfolgreich")
+            return True
+
         except Exception as e:
-            print(f"[‼️] Login-Fehler: {e}")
+            print(f"[❌] Login fehlgeschlagen: {e}")
             self.driver.quit()
             return False
-
 
     def get_farm_lists(self):
         try:
