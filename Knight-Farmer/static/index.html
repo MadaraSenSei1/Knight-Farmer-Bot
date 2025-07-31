@@ -6,187 +6,166 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
-  <div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6">Travian Bot - Multi Account</h1>
-    <div id="accounts"></div>
+<div class="container mx-auto p-6">
+  <h1 class="text-3xl font-bold mb-6">Travian Bot – Multi Account</h1>
+  <div id="accounts"></div>
+  <button id="add-account-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-4">
+    ➕ Add Account
+  </button>
+</div>
 
-    <button
-      id="add-account-btn"
-      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-4"
-    >
-      ➕ Add Account
-    </button>
-  </div>
+<script>
+  let accountCounter = 0;
 
-  <script>
-    let accountCounter = 0;
+  document.getElementById("add-account-btn").onclick = () => {
+    accountCounter++;
+    const id = `acc${accountCounter}`;
+    const container = document.createElement("div");
+    container.id = id;
+    container.className = "p-4 bg-white shadow rounded mb-6";
+    container.innerHTML = `
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="font-semibold text-lg">Account #${accountCounter}</h2>
+        <button onclick="removeAccount('${id}')" class="text-red-600 hover:underline">Remove Account</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <input id="${id}-username" placeholder="Username / Email" class="border p-2" />
+        <input id="${id}-password" type="password" placeholder="Password" class="border p-2" />
+        <input id="${id}-server" placeholder="https://ts9.x1.europe.travian.com" class="border p-2" />
+      </div>
+      <div class="mt-4">Proxy (optional):</div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <input id="${id}-proxy-ip" placeholder="IP" class="border p-2" />
+        <input id="${id}-proxy-port" placeholder="Port" class="border p-2" />
+        <input id="${id}-proxy-user" placeholder="Username" class="border p-2" />
+        <input id="${id}-proxy-pass" placeholder="Password" class="border p-2" />
+      </div>
+      <div class="mt-4 font-medium">Interval (sec):</div>
+      <div class="flex items-center gap-2">
+        <input id="${id}-interval-min" type="number" placeholder="Min" class="border p-2 w-24" />
+        <input id="${id}-interval-max" type="number" placeholder="Max" class="border p-2 w-24" />
+        <label class="ml-4"><input id="${id}-randomize" type="checkbox" /> ±30s random offset</label>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="login('${id}')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">🔐 Login</button>
+        <button onclick="startBot('${id}')" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">▶️ Start Bot</button>
+        <button onclick="stopBot('${id}')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">⏹ Stop Bot</button>
+      </div>
+      <div id="${id}-timer" class="mt-2 text-sm text-gray-600 hidden">
+        ⏳ Next raid in: <span class="count font-mono">--</span>s
+      </div>
+      <div id="${id}-farm-container" class="mt-4 hidden">
+        <div class="mb-2">Select farms:</div>
+        <div id="${id}-farmlist"></div>
+      </div>
+    `;
+    document.getElementById("accounts").appendChild(container);
+  }
 
-    document.getElementById("add-account-btn").addEventListener("click", () => {
-      accountCounter++;
-      const id = `acc${accountCounter}`;
-      const container = document.createElement("div");
-      container.className = "p-4 bg-white shadow rounded mb-4";
-      container.innerHTML = `
-        <h2 class="font-semibold text-lg mb-2">Account #${accountCounter}</h2>
-        <input id="${id}-username" placeholder="Username" class="border p-2 mb-2 w-full" />
-        <input id="${id}-password" type="password" placeholder="Password" class="border p-2 mb-2 w-full" />
-        <input id="${id}-server" placeholder="https://tsX.travian.com" class="border p-2 mb-2 w-full" />
+  function removeAccount(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.remove();
+      delete window[`uuid_${id}`];
+    }
+  }
 
-        <div class="mb-2 font-medium">Proxy (optional):</div>
-        <input id="${id}-proxy-ip" placeholder="Proxy IP" class="border p-2 mb-2 w-full" />
-        <input id="${id}-proxy-port" placeholder="Port" class="border p-2 mb-2 w-full" />
-        <input id="${id}-proxy-user" placeholder="Username" class="border p-2 mb-2 w-full" />
-        <input id="${id}-proxy-pass" placeholder="Password" class="border p-2 mb-2 w-full" />
-
-        <div class="mb-2 font-medium">Interval Settings (sec):</div>
-        <div class="flex gap-2">
-          <input id="${id}-interval-min" type="number" placeholder="Min" class="border p-2 w-1/2" />
-          <input id="${id}-interval-max" type="number" placeholder="Max" class="border p-2 w-1/2" />
-        </div>
-        <label class="flex items-center gap-2 mt-2">
-          <input id="${id}-randomize" type="checkbox" class="h-4 w-4" />
-          <span>±30s random offset</span>
-        </label>
-
-        <div class="flex flex-wrap gap-2 mt-4">
-          <button onclick="login('${id}')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-            🔐 Login
-          </button>
-          <button onclick="startBot('${id}')" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
-            ▶️ Start Bot
-          </button>
-          <button onclick="stopBot('${id}')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-            ⏹ Stop Bot
-          </button>
-        </div>
-
-        <div class="mt-2 text-sm text-gray-600">
-          <span id="${id}-timer" class="font-mono text-blue-600 hidden">⏳ Next raid in: <span class="count">--</span>s</span>
-        </div>
-
-        <pre id="${id}-farm-list" class="bg-gray-100 p-2 mt-2 text-sm rounded hidden"></pre>
-      `;
-      document.getElementById("accounts").appendChild(container);
+  async function login(id) {
+    const body = { username: document.getElementById(`${id}-username`).value,
+                   password: document.getElementById(`${id}-password`).value,
+                   server: document.getElementById(`${id}-server`).value,
+                   proxy: {
+                     ip: document.getElementById(`${id}-proxy-ip`).value || "",
+                     port: document.getElementById(`${id}-proxy-port`).value || "",
+                     username: document.getElementById(`${id}-proxy-user`).value || "",
+                     password: document.getElementById(`${id}-proxy-pass`).value || ""
+                   }
+                 };
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
     });
-
-    async function login(id) {
-      const username = document.getElementById(`${id}-username`).value;
-      const password = document.getElementById(`${id}-password`).value;
-      const server = document.getElementById(`${id}-server`).value;
-
-      const proxy = {
-        ip: document.getElementById(`${id}-proxy-ip`).value || "",
-        port: document.getElementById(`${id}-proxy-port`).value || "",
-        username: document.getElementById(`${id}-proxy-user`).value || "",
-        password: document.getElementById(`${id}-proxy-pass`).value || ""
-      };
-
-      const body = { username, password, server, proxy };
-
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        window[`uuid_${id}`] = data.uuid;
-
-        const listEl = document.getElementById(`${id}-farm-list`);
-        listEl.textContent = JSON.stringify(data.farm_lists, null, 2);
-        listEl.classList.remove("hidden");
-
-        alert("✅ Login successful.");
-      } else {
-        alert("❌ Login failed: " + (data?.error || data?.detail || JSON.stringify(data)));
-      }
+    const data = await res.json();
+    if (!res.ok) {
+      return alert("❌ Login failed: " + (data.error || data.detail || JSON.stringify(data)));
     }
+    window[`uuid_${id}`] = data.uuid;
 
-    async function startBot(id) {
-      const uuid = window[`uuid_${id}`];
-      if (!uuid) return alert("Please log in first.");
+    // Render farm-list with checkboxes
+    const container = document.getElementById(`${id}-farm-container`);
+    const list = document.getElementById(`${id}-farmlist`);
+    list.innerHTML = "";
+    data.farm_lists.forEach(f => {
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = f.id;
+      cb.checked = true;
+      const label = document.createElement("label");
+      label.className = "block";
+      label.textContent = `Farm ${f.name}`;
+      label.prepend(cb);
+      list.appendChild(label);
+    });
+    container.classList.remove("hidden");
+    alert("✅ Login successful and farm list loaded.");
+  }
 
-      const min = parseInt(document.getElementById(`${id}-interval-min`).value);
-      const max = parseInt(document.getElementById(`${id}-interval-max`).value);
-      const randomize = document.getElementById(`${id}-randomize`).checked;
-
-      if (!min || !max || min >= max) {
-        return alert("Please enter a valid min/max interval (min < max).");
-      }
-
-      const body = { uuid, min, max, randomize };
-
-      const res = await fetch('/api/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      if (res.ok) {
-        startCountdown(id, min, max, randomize);
-        alert("✅ Bot started.");
-      } else {
-        const err = await res.json();
-        alert("❌ Failed to start bot: " + (err?.error || JSON.stringify(err)));
-      }
+  async function startBot(id) {
+    const uuid = window[`uuid_${id}`];
+    if (!uuid) return alert("Please login first.");
+    const min = parseInt(document.getElementById(`${id}-interval-min`).value);
+    const max = parseInt(document.getElementById(`${id}-interval-max`).value);
+    const rand = document.getElementById(`${id}-randomize`).checked;
+    if (!min || !max || min >= max) return alert("Invalid interval");
+    const selected = Array.from(document.querySelectorAll(`#${id}-farmlist input[type=checkbox]:checked`))
+                         .map(cb => parseInt(cb.value));
+    const body = { uuid, min, max, randomize: rand, farms: selected };
+    const res = await fetch("/api/start", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      return alert("❌ Failed: "+(err.error||JSON.stringify(err)));
     }
+    startCountdown(id, min, max, rand);
+    alert("✅ Bot started.");
+  }
 
-    async function stopBot(id) {
-      const uuid = window[`uuid_${id}`];
-      if (!uuid) return alert("UUID not found.");
+  async function stopBot(id) {
+    const uuid = window[`uuid_${id}`];
+    if (!uuid) return alert("Please login first.");
+    await fetch(`/api/stop/${uuid}`, { method: "POST" });
+    stopCountdown(id);
+    alert("⏹ Bot stopped.");
+  }
 
-      const res = await fetch(`/api/stop/${uuid}`, { method: "POST" });
-
-      if (res.ok) {
-        stopCountdown(id);
-        alert("⏹ Bot stopped.");
-      } else {
-        const err = await res.json();
-        alert("❌ Failed to stop bot: " + (err?.error || JSON.stringify(err)));
-      }
-    }
-
-    const countdownTimers = {};
-
-    function startCountdown(id, min, max, randomize) {
-      stopCountdown(id); // Clear any existing timer
-
-      const timerEl = document.getElementById(`${id}-timer`);
-      const countSpan = timerEl.querySelector(".count");
-      timerEl.classList.remove("hidden");
-
-      function loop() {
-        let interval = Math.floor(Math.random() * (max - min + 1)) + min;
-        if (randomize) {
-          interval += Math.floor(Math.random() * 61) - 30; // ±30s
+  const timers = {};
+  function startCountdown(id,min,max,rand) {
+    stopCountdown(id);
+    const el = document.querySelector(`#${id}-timer`);
+    const span = el.querySelector(".count");
+    el.classList.remove("hidden");
+    function loop(){
+      let interval = Math.floor(Math.random()*(max-min+1))+min;
+      if(rand) interval += Math.floor(Math.random()*61)-30;
+      let rem = interval;
+      span.textContent = rem;
+      timers[id] = setInterval(()=>{
+        rem--;
+        span.textContent = rem;
+        if(rem<=0){
+          clearInterval(timers[id]); loop();
         }
-
-        let remaining = interval;
-        countSpan.textContent = remaining;
-
-        countdownTimers[id] = setInterval(() => {
-          remaining--;
-          countSpan.textContent = remaining;
-          if (remaining <= 0) {
-            clearInterval(countdownTimers[id]);
-            loop(); // Restart countdown for next raid
-          }
-        }, 1000);
-      }
-
-      loop();
+      },1000);
     }
-
-    function stopCountdown(id) {
-      if (countdownTimers[id]) {
-        clearInterval(countdownTimers[id]);
-        delete countdownTimers[id];
-        const timerEl = document.getElementById(`${id}-timer`);
-        timerEl.classList.add("hidden");
-      }
-    }
-  </script>
+    loop();
+  }
+  function stopCountdown(id){
+    clearInterval(timers[id]);
+    document.getElementById(`${id}-timer`).classList.add("hidden");
+  }
+</script>
 </body>
 </html>
