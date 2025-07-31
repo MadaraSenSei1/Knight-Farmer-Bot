@@ -80,26 +80,27 @@ class TravianBot:
             print(f"[‼️] Fehler beim Abrufen der Farm-Listen: {e}")
             return []
 
-    def start_farming(self, min_interval, max_interval, randomize):
-        self.running = True
+    def run_all_farm_lists(self):
+        try:
+            # Stelle sicher, dass du auf der Farm-Listen-Seite bist
+            self.driver.get(f"{self.server}/build.php?tt=99&id=39")  # id=39 = Rally Point
+            wait = WebDriverWait(self.driver, 10)
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "startButton")))
 
-        def farm_loop():
-            while self.running:
+            start_buttons = self.driver.find_elements(By.CLASS_NAME, "startButton")
+
+            print(f"[📋] {len(start_buttons)} Farm-Listen gefunden")
+
+            for idx, button in enumerate(start_buttons):
                 try:
-                    print(f"[⚔️] {self.username}: Sende Farm-Listen ...")
-                    # Hier kannst du Klicks auf Farm-Listen einfügen
-                    # Beispiel:
-                    # self.driver.find_element(By.ID, "raidList_1").click()
-
-                    sleep_time = random.randint(min_interval, max_interval)
-                    if randomize:
-                        sleep_time += random.randint(0, 30)
-                    print(f"[⏳] Nächster Angriff in {sleep_time} Sekunden")
-                    time.sleep(sleep_time)
+                    button.click()
+                    print(f"[✅] Farm-Liste {idx+1} gestartet")
+                    time.sleep(1)  # etwas Wartezeit, um Server nicht zu überlasten
                 except Exception as e:
-                    print(f"[‼️] Fehler im Farming-Loop: {e}")
-                    self.running = False
-                    break
+                    print(f"[⚠️] Fehler beim Starten der Farm-Liste {idx+1}: {e}")
+
+        except Exception as e:
+            print(f"[‼️] Fehler beim Farm-Listen-Start: {e}")
 
         self.thread = threading.Thread(target=farm_loop)
         self.thread.start()
