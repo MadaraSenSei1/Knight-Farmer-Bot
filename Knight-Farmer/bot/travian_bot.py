@@ -35,20 +35,26 @@ class TravianBot:
             self.driver.get(self.server)
             wait = WebDriverWait(self.driver, 15)
 
-            # ✅ Korrekte Felder für klassisches Login-Formular
-            username_input = wait.until(EC.presence_of_element_located((By.NAME, "name")))
-            password_input = wait.until(EC.presence_of_element_located((By.NAME, "password")))
-            login_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]')))
+            # Versuche zuerst modernes React-Login
+            try:
+                email_field = wait.until(EC.presence_of_element_located((By.NAME, "email")))
+                password_field = self.driver.find_element(By.NAME, "password")
+                login_button = self.driver.find_element(By.XPATH, '//button[contains(text(), "Log in")]')
+            
+                email_field.send_keys(self.username)
+                password_field.send_keys(self.password)
+                login_button.click()
+            except:
+                # Fallback auf klassisches Login
+                name_field = wait.until(EC.presence_of_element_located((By.NAME, "name")))
+                password_field = self.driver.find_element(By.NAME, "password")
+                login_button = self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
 
-            username_input.clear()
-            username_input.send_keys(self.username)
+                name_field.send_keys(self.username)
+                password_field.send_keys(self.password)
+                login_button.click()
 
-            password_input.clear()
-            password_input.send_keys(self.password)
-
-            login_button.click()
-
-            # Warte auf Weiterleitung zur Dorfansicht
+            # Warte auf erfolgreiche Weiterleitung
             wait.until(EC.url_contains("dorf"))
             print("[✅] Login erfolgreich")
             return True
